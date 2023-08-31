@@ -25,6 +25,7 @@
 
 # [START language_classify_text]
 from google.cloud import language_v1
+import pandas as pd
 
 
 def sample_classify_text(text_content):
@@ -72,19 +73,33 @@ def sample_classify_text(text_content):
 
 # [END language_classify_text]
 
+def read_csv_file(file_name, dropna_rule = False):
+    raw_df = pd.read_csv(file_name)
+    print(f'''There are {raw_df.count()} rows in file {file_name}''')
+    if dropna_rule:
+        print(f'''Removing nan fields in the {dropna_rule}''')
+        raw_df = raw_df.dropna(subset=[dropna_rule])
+        print(f'''There are {raw_df.count()} rows in file {file_name} after drop nan fields''')
+    return raw_df
 
 def main():
-    import argparse
+    file_names = ['Product.csv', 'Campaign.csv']
+    file_name = file_names[0]
+    raw_df = read_csv_file(file_name[0], 'Name')
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--text_content",
-        type=str,
-        default="That actor on TV makes movies in Hollywood and also stars in a variety of popular new TV shows.",
-    )
-    args = parser.parse_args()
 
-    sample_classify_text(args.text_content)
+# def main():
+#     import argparse
+
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument(
+#         "--text_content",
+#         type=str,
+#         default="That actor on TV makes movies in Hollywood and also stars in a variety of popular new TV shows.",
+#     )
+#     args = parser.parse_args()
+
+#     sample_classify_text(args.text_content)
 
 
 if __name__ == "__main__":
