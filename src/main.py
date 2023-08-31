@@ -85,7 +85,7 @@ def read_csv_file(file_name, dropna_rule = False):
 def main():
     file_names = ['Product.csv', 'Campaign.csv']
     file_name = file_names[0]
-    raw_df = read_csv_file(file_name[0], 'Name')
+    raw_df = read_csv_file(file_name, 'Name')
 
 
 # def main():
