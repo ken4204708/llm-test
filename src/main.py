@@ -26,6 +26,7 @@
 # [START language_classify_text]
 from google.cloud import language_v1
 import pandas as pd
+import numpy as np
 import pdb
 
 
@@ -70,6 +71,12 @@ def sample_classify_text(text_content):
         # Get the confidence. Number representing how certain the classifier
         # is that this category represents the provided text.
         print(f"Confidence: {category.confidence}")
+    if response:
+        confidences = [x.confidence for x in response.categories]
+        category_with_highest_confidence = response.categories[np.argmax(confidences)].name
+    else:
+        category_with_highest_confidence = ''
+    return category_with_highest_confidence
 
 
 # [END language_classify_text]
@@ -89,8 +96,7 @@ def main():
     file_name = file_names[0]
     dropna_rule = dropna_rules[0]
     raw_df = read_csv_file(file_name, dropna_rule)
-    classification_result = []
-    pdb.set_trace()
+    raw_df['classify_result'] = raw_df.apply(sample_classify_text, axis = 1)
     
 
 # def main():
