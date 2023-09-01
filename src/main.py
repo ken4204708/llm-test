@@ -90,13 +90,16 @@ def read_csv_file(file_name, dropna_rule = []):
         print(f'''There are {len(raw_df)} rows in file {file_name} after drop nan fields''')
     return raw_df
 
+def f1(df):
+    return sample_classify_text(df['Name'])
+
 def main():
     file_names = ['Product.csv', 'Campaign.csv']
     dropna_rules = [['Name'], []]
     file_name = file_names[0]
     dropna_rule = dropna_rules[0]
     raw_df = read_csv_file(file_name, dropna_rule)
-    raw_df['classify_result'] = raw_df.apply(sample_classify_text, axis = 1)
+    raw_df['classify_result'] = raw_df['Name'].apply(f1)
     
 
 # def main():
