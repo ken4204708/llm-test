@@ -26,6 +26,7 @@
 # [START language_classify_text]
 from google.cloud import language_v1
 import pandas as pd
+import pdb
 
 
 def sample_classify_text(text_content):
@@ -73,20 +74,24 @@ def sample_classify_text(text_content):
 
 # [END language_classify_text]
 
-def read_csv_file(file_name, dropna_rule = False):
+def read_csv_file(file_name, dropna_rule = []):
     raw_df = pd.read_csv(file_name)
-    print(f'''There are {raw_df.count()} rows in file {file_name}''')
-    if dropna_rule:
+    print(f'''There are {len(raw_df)} rows in file {file_name}''')
+    if len(dropna_rule) == 0:
         print(f'''Removing nan fields in the {dropna_rule}''')
-        raw_df = raw_df.dropna(subset=[dropna_rule])
-        print(f'''There are {raw_df.count()} rows in file {file_name} after drop nan fields''')
+        raw_df = raw_df.dropna(subset = dropna_rule)
+        print(f'''There are {len(raw_df)} rows in file {file_name} after drop nan fields''')
     return raw_df
 
 def main():
     file_names = ['Product.csv', 'Campaign.csv']
+    dropna_rules = [['Name'], []]
     file_name = file_names[0]
-    raw_df = read_csv_file(file_name, 'Name')
-
+    dropna_rule = dropna_rules[0]
+    raw_df = read_csv_file(file_name, dropna_rule)
+    classification_result = []
+    pdb.set_trace()
+    
 
 # def main():
 #     import argparse
