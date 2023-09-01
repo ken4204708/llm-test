@@ -81,10 +81,10 @@ def sample_classify_text(text_content):
 
 # [END language_classify_text]
 
-def read_csv_file(file_name, dropna_rule = []):
+def read_csv_file(file_name, dropna_rule):
     raw_df = pd.read_csv(file_name)
     print(f'''There are {len(raw_df)} rows in file {file_name}''')
-    if len(dropna_rule) == 0:
+    if len(dropna_rule) != 0:
         print(f'''Removing nan fields in the {dropna_rule}''')
         raw_df = raw_df.dropna(subset = dropna_rule)
         print(f'''There are {len(raw_df)} rows in file {file_name} after drop nan fields''')
@@ -99,7 +99,7 @@ def main():
     file_name = file_names[0]
     dropna_rule = dropna_rules[0]
     raw_df = read_csv_file(file_name, dropna_rule)
-    raw_df['classify_result'] = raw_df['Name'].apply(f1)
+    raw_df['classify_result'] = raw_df.apply(f1,axis=1)
     
 
 # def main():
