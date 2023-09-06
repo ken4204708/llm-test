@@ -68,10 +68,10 @@ def sample_classify_text(text_content):
         # Get the name of the category representing the document.
         # See the predefined taxonomy of categories:
         # https://cloud.google.com/natural-language/docs/categories
-        print(f"Category name: {category.name}")
+        # print(f"Category name: {category.name}")
         # Get the confidence. Number representing how certain the classifier
         # is that this category represents the provided text.
-        print(f"Confidence: {category.confidence}")
+        # print(f"Confidence: {category.confidence}")
     if response:
         confidences = [x.confidence for x in response.categories]
         category_with_highest_confidence = response.categories[np.argmax(confidences)].name
@@ -93,7 +93,7 @@ def f1(row, select_cols, expr):
     if row['keep_index']:
         select_results = row[select_cols].dropna().to_list()
         text = expr.join(select_results)
-        print(text)
+        # print(text)
         return sample_classify_text(text)
     else:
         return ''
