@@ -64,7 +64,7 @@ def sample_classify_text(text_content):
         }
     )
     # Loop through classified categories returned from the API
-    for category in response.categories:
+    # for category in response.categories:
         # Get the name of the category representing the document.
         # See the predefined taxonomy of categories:
         # https://cloud.google.com/natural-language/docs/categories
