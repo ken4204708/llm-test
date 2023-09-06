@@ -1,0 +1,23 @@
+[
+    {
+        "filename": "Product.csv",
+        "drop_cols": [
+            "Name"
+        ],
+        "sel_cols": [
+            "Name",
+            "Description"
+        ],
+        "expr": ", "
+    },
+    {
+        "filename": "Campaign.csv",
+        "drop_cols": [
+            "Name"
+        ],
+        "sel_cols": [
+            "Name"
+        ],
+        "expr": ", "
+    }
+]

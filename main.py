@@ -27,8 +27,9 @@
 from google.cloud import language_v1
 import pandas as pd
 import numpy as np
-import pdb
-
+import argparse
+import json
+import os
 
 def sample_classify_text(text_content):
     """
@@ -84,37 +85,40 @@ def sample_classify_text(text_content):
 def read_csv_file(file_name, dropna_rule):
     raw_df = pd.read_csv(file_name)
     print(f'''There are {len(raw_df)} rows in file {file_name}''')
-    if len(dropna_rule) != 0:
-        print(f'''Removing nan fields in the {dropna_rule}''')
-        raw_df = raw_df.dropna(subset = dropna_rule)
-        print(f'''There are {len(raw_df)} rows in file {file_name} after drop nan fields''')
+    keep_index = raw_df.dropna(subset = dropna_rule).index
+    raw_df['keep_index'] = raw_df.index.isin(keep_index)
     return raw_df
 
-def f1(df):
-    return sample_classify_text(df['Name'])
+def f1(row, select_cols, expr):
+    if row['keep_index']:
+        select_results = row[select_cols].dropna().to_list()
+        text = expr.join(select_results)
+        print(text)
+        return sample_classify_text(text)
+    else:
+        return ''
 
 def main():
-    file_names = ['Product.csv', 'Campaign.csv']
-    dropna_rules = [['Name'], []]
-    file_name = file_names[0]
-    dropna_rule = dropna_rules[0]
-    raw_df = read_csv_file(file_name, dropna_rule)
-    raw_df['classify_result'] = raw_df.apply(f1,axis=1)
-    
+    with open(args['json'], 'r') as f:
+        files = json.load(f)
 
-# def main():
-#     import argparse
+    for file in files:
+        file_name = file['filename']
+        fn, ext = os.path.splitext(file_name)
+        drop_cols, sel_cols, expr = file['drop_cols'], file['sel_cols'], file['expr']
+        raw_df = read_csv_file(file_name, drop_cols)
+        raw_df['classify_result'] = raw_df.apply(f1,
+                                                 select_cols=sel_cols,
+                                                 expr=expr,
+                                                 axis=1)
 
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument(
-#         "--text_content",
-#         type=str,
-#         default="That actor on TV makes movies in Hollywood and also stars in a variety of popular new TV shows.",
-#     )
-#     args = parser.parse_args()
-
-#     sample_classify_text(args.text_content)
+        raw_df.to_csv(f"{fn}_output{ext}")
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--json", type=str, help="JSON file", default="config.json")
+    args, _ = parser.parse_known_args()
+    args = vars(args)
+
     main()
