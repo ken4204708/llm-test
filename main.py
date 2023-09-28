@@ -36,8 +36,14 @@ import os
 import pkg_resources
 from symspellpy.symspellpy import SymSpell
 
-from ekphrasis.classes.segmenter import Segmenter
+# from ekphrasis.classes.segmenter import Segmenter
+from google.oauth2 import service_account
 
+service_account_key_path = 'polar-arbor-250703-444efe112ad6.json'
+credentials = service_account.Credentials.from_service_account_file(
+    service_account_key_path,
+    scopes=["https://www.googleapis.com/auth/cloud-platform"],
+)
 def sample_classify_text(text_content):
     """
     Classifying Content in a String
@@ -46,7 +52,7 @@ def sample_classify_text(text_content):
       text_content The text content to analyze.
     """
 
-    client = language_v1.LanguageServiceClient()
+    client = language_v1.LanguageServiceClient(credentials=credentials)
 
     # text_content = "That actor on TV makes movies in Hollywood and also stars in a variety of popular new TV shows."
 
@@ -85,7 +91,7 @@ def sample_classify_text(text_content):
     else:
         confidences = [0]
         category_with_highest_confidence = ''
-    return max(confidences), category_with_highest_confidence
+    return max(confidences), category_with_highest_confidence.replace('/', '|')
 
 # [END language_classify_text]
 
@@ -97,19 +103,19 @@ def read_csv_file(file_name, dropna_rule):
     return raw_df
 
 def f1(row, select_cols, expr, model):
+    print(row['Name'])
     if row['keep_index']:
         select_results = row[select_cols].dropna().to_list()
-        final_text = text = expr.join(select_results)
-        seg_text = model.word_segmentation(text)
-        final_text = seg_text.corrected_string
-        conf_1, res_1 = sample_classify_text(text)
-        conf_2, res_2 =sample_classify_text(final_text)
-        final_result = res_1 if conf_1 >= conf_2 else res_2
-        print(res_1, res_2)
-        time.sleep(0.5)
-        return final_result
-    else:
-        return ''
+        row['combined_name'] = text_1 = expr.join(select_results)
+        seg_text = model.word_segmentation(row['combined_name'])
+        row['seg_combined_name'] = text_2 = seg_text.corrected_string
+        row['orginal_conf'], row['orginal_classify_result'] = sample_classify_text(text_1)
+        row['seg_conf'], row['seg_classify_result'] = sample_classify_text(text_2)
+        row['classify_result_based_high_conf'] = row['orginal_classify_result'] if row['orginal_conf'] >= \
+                                                         row['seg_conf'] else row['seg_classify_result']
+        time.sleep(0.3)
+    return row
+
 
 def main():
     with open(args['json'], 'r') as f:
@@ -126,11 +132,13 @@ def main():
         fn, ext = os.path.splitext(file_name)
         drop_cols, sel_cols, expr = file['drop_cols'], file['sel_cols'], file['expr']
         raw_df = read_csv_file(file_name, drop_cols)
-        raw_df['classify_result'] = raw_df.apply(f1,
-                                                 select_cols=sel_cols,
-                                                 expr=expr,
-                                                 model=sym_spell,
-                                                 axis=1)
+        raw_df = raw_df.apply(
+            f1,
+            select_cols=sel_cols,
+            expr=expr,
+            model=sym_spell,
+            axis=1
+        )
 
         # raw_df = raw_df.drop(columns=['classify_result'])
         raw_df.to_csv(f"{fn}_output{ext}")
