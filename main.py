@@ -91,13 +91,19 @@ def sample_classify_text(text_content):
     else:
         confidences = [0]
         category_with_highest_confidence = ''
-    return max(confidences), category_with_highest_confidence.replace('/', '|')
+    category_with_highest_confidence = category_with_highest_confidence.split('/')
+    length_category = len(category_with_highest_confidence)
+    for i in np.arange(length_category,4):
+        category_with_highest_confidence.append('')
+    return max(confidences), category_with_highest_confidence[1], category_with_highest_confidence[2], category_with_highest_confidence[3]
+    # return max(confidences), category_with_highest_confidence.replace('/', '|')
 
 # [END language_classify_text]
 
 def read_csv_file(file_name, dropna_rule):
     raw_df = pd.read_csv(file_name)
     print(f'''There are {len(raw_df)} rows in file {file_name}''')
+    # raw_df = raw_df.dropna(subset = dropna_rule)
     keep_index = raw_df.dropna(subset = dropna_rule).index
     raw_df['keep_index'] = raw_df.index.isin(keep_index)
     return raw_df
@@ -109,10 +115,14 @@ def f1(row, select_cols, expr, model):
         row['combined_name'] = text_1 = expr.join(select_results)
         seg_text = model.word_segmentation(row['combined_name'])
         row['seg_combined_name'] = text_2 = seg_text.corrected_string
-        row['orginal_conf'], row['orginal_classify_result'] = sample_classify_text(text_1)
-        row['seg_conf'], row['seg_classify_result'] = sample_classify_text(text_2)
-        row['classify_result_based_high_conf'] = row['orginal_classify_result'] if row['orginal_conf'] >= \
-                                                         row['seg_conf'] else row['seg_classify_result']
+        row['orginal_conf'], row['original_classify_level_1'], row['original_classify_level_2'], row['original_classify_level_3'] = sample_classify_text(text_1)
+        row['seg_conf'], row['seg_classify_level_1'], row['seg_classify_level_2'], row['seg_classify_level_3'] = sample_classify_text(text_2)
+        row['classify_result_based_high_conf_level_1'] = row['original_classify_level_1'] if row['orginal_conf'] >= \
+                                                            row['seg_conf'] else row['seg_classify_level_1']
+        row['classify_result_based_high_conf_level_2'] = row['original_classify_level_2'] if row['orginal_conf'] >= \
+                                                    row['seg_conf'] else row['seg_classify_level_2']
+        row['classify_result_based_high_conf_level_3'] = row['original_classify_level_3'] if row['orginal_conf'] >= \
+                                                    row['seg_conf'] else row['seg_classify_level_3']
         time.sleep(0.3)
     return row
 
@@ -141,7 +151,27 @@ def main():
         )
 
         # raw_df = raw_df.drop(columns=['classify_result'])
-        raw_df.to_csv(f"{fn}_output{ext}")
+        result_df = pd.DataFrame([])
+        result_df["CustomerCode"] = raw_df["CustomerCode"]
+        result_df["AutoID"] = raw_df["AutoID"]
+        result_df[sel_cols] = raw_df[sel_cols]
+        result_df["combined_name"] = raw_df["combined_name"]
+        result_df['seg_combined_name'] = raw_df['seg_combined_name']
+        result_df["classify_result_based_high_conf_level_1"] = raw_df["classify_result_based_high_conf_level_1"]
+        result_df["classify_result_based_high_conf_level_2"] = raw_df["classify_result_based_high_conf_level_2"]
+        result_df["classify_result_based_high_conf_level_3"] = raw_df["classify_result_based_high_conf_level_3"]
+        result_df['orginal_conf'] = raw_df['orginal_conf']
+        result_df["original_classify_level_1"] = raw_df["original_classify_level_1"]
+        result_df["original_classify_level_2"] = raw_df["original_classify_level_2"]
+        result_df["original_classify_level_3"] = raw_df["original_classify_level_3"]
+        result_df['seg_conf'] = raw_df['seg_conf']
+        result_df["seg_classify_level_1"] = raw_df["seg_classify_level_1"]
+        result_df["seg_classify_level_2"] = raw_df["seg_classify_level_2"]
+        result_df["seg_classify_level_3"] = raw_df["seg_classify_level_3"]
+        result_df["classify_result_based_high_conf_level_1"] = raw_df["classify_result_based_high_conf_level_1"]
+        # result_df = raw_df
+        result_df = result_df.sort_values(by=["classify_result_based_high_conf_level_1", "classify_result_based_high_conf_level_2"])
+        result_df.to_csv(f"output/{fn}_output{ext}")
 
 
 if __name__ == "__main__":
